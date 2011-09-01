@@ -8,6 +8,7 @@ import io
 import os
 import os.path
 import sys
+import time
 from urllib.request import urlopen
 
 LF = '\n'
@@ -56,14 +57,28 @@ def main():
 
     parser = MyParser()
     parser.feed(html)
+
     header = ('#GRAMMAR 1' + LF + '#TOPLEFT Common Spanish Words' + LF * 2)
     with open('spanish-words.flashup', 'w', encoding='utf-8') as out:
         out.write(header)
 
-        for mp3, vocab, defn in parser.items:
+        for mp3url, vocab, defn in parser.items:
             out.write('* ' + vocab + LF)
             out.write(defn + LF)
             out.write(LF)
+
+    mp3urls = [trip[0] for trip in parser.items]
+    assert len(mp3urls) == len(set(mp3urls))
+    mp3dir = 'mp3s'
+    if not os.path.exists(mp3dir):
+        os.mkdir(mp3dir)
+    for mp3url in mp3urls:
+        fname = mp3dir + os.sep + os.path.basename(mp3url)
+        with open(fname, 'wb') as out:
+            with urlopen(mp3url) as handle:
+                out.write(handle.read())
+                print('downloaded ' + mp3url)
+                time.sleep(5) #being friendly
 
 
 if __name__ == '__main__':
