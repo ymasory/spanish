@@ -14,56 +14,39 @@ LF = '\n'
 url = 'http://wordsgalore.com/wordsgalore/languages/spanish/spanish1000.html'
 urldir = os.path.dirname(url)
 
-class FlashupWriter(HTMLParser):
+class MyParser(HTMLParser):
 
     def __init__(self):
         super().__init__()
-        self.header = ('#GRAMMAR 1' + LF + '#TOPLEFT Common Spanish Words' +
-                       LF * 2)
-        self.outfile = 'words.flashup'
-        self.out = open(self.outfile, 'w')
-        self.out.write(self.header)
         self.href = "href"
         self.anchor = "a"
         self.br = "br"
-        self.wavfile = None
-        self.vocab = "hola"
-        self.defn = "hi"
+        self.wavfile = self.text = self.vocab = self.defn = ''
+        self.items = []
 
 
     def handle_starttag(self, tag, attrs):
         if tag == self.anchor:
+            self.text = ''
             attrs = dict(attrs)
             if self.href in attrs:
                 self.wavfile = attrs[self.href]
 
         if tag == self.br:
+            self.defn = self.text.strip()
             triple = (urldir + '/' + str(self.wavfile), self.vocab, self.defn)
-            if not None in triple:
-                mp3, voc, defn = triple
-                self.out.write('* ' + voc + LF)
-                self.out.write(defn + LF)
-                self.out.write(LF)
+            if not None in triple and not '' in triple:
+                self.items.append(triple)
+
+
+    def handle_endtag(self, tag):
+        if tag == self.anchor:
+            self.vocab = self.text.strip()
+            self.text = ''
 
     
-    def finish(self):
-        self.out.close()
-
-
-class WavWriter(HTMLParser):
-
-    def handle_starttag(self, tag, attrs):
-        pass
-
-
-def write_flashup(html):
-    flashup_writer = FlashupWriter()
-    flashup_writer.feed(html)
-
-
-def write_wav(html):
-    wav_writer = WavWriter()
-    wav_writer.feed(html)
+    def handle_data(self, data):
+        self.text += data
 
 
 def main():
@@ -71,8 +54,16 @@ def main():
         html = handle.read()
         html = html.decode('windows-1252')
 
-    write_flashup(html)
-    write_wav(html)
+    parser = MyParser()
+    parser.feed(html)
+    header = ('#GRAMMAR 1' + LF + '#TOPLEFT Common Spanish Words' + LF * 2)
+    with open('spanish-words.flashup', 'w', encoding='utf-8') as out:
+        out.write(header)
+
+        for mp3, vocab, defn in parser.items:
+            out.write('* ' + vocab + LF)
+            out.write(defn + LF)
+            out.write(LF)
 
 
 if __name__ == '__main__':
