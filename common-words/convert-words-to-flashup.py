@@ -3,38 +3,77 @@
 # Usage: ./convert-words-to-flashup.py
 # Output: words.flashup
 
+from html.parser import HTMLParser
+import io
 import os
+import os.path
 import sys
-import tempfile as tempfilemodule
 from urllib.request import urlopen
 
+LF = '\n'
+url = 'http://wordsgalore.com/wordsgalore/languages/spanish/spanish1000.html'
+urldir = os.path.dirname(url)
+
+class FlashupWriter(HTMLParser):
+
+    def __init__(self):
+        super().__init__()
+        self.header = ('#GRAMMAR 1' + LF + '#TOPLEFT Common Spanish Words' +
+                       LF * 2)
+        self.outfile = 'words.flashup'
+        self.out = open(self.outfile, 'w')
+        self.out.write(self.header)
+        self.href = "href"
+        self.anchor = "a"
+        self.br = "br"
+        self.wavfile = None
+        self.vocab = "hola"
+        self.defn = "hi"
+
+
+    def handle_starttag(self, tag, attrs):
+        if tag == self.anchor:
+            attrs = dict(attrs)
+            if self.href in attrs:
+                self.wavfile = attrs[self.href]
+
+        if tag == self.br:
+            triple = (urldir + '/' + str(self.wavfile), self.vocab, self.defn)
+            if not None in triple:
+                mp3, voc, defn = triple
+                self.out.write('* ' + voc + LF)
+                self.out.write(defn + LF)
+                self.out.write(LF)
+
+    
+    def finish(self):
+        self.out.close()
+
+
+class WavWriter(HTMLParser):
+
+    def handle_starttag(self, tag, attrs):
+        pass
+
+
+def write_flashup(html):
+    flashup_writer = FlashupWriter()
+    flashup_writer.feed(html)
+
+
+def write_wav(html):
+    wav_writer = WavWriter()
+    wav_writer.feed(html)
+
+
 def main():
-    LF = '\n'
-    url = ('http://wordsgalore.com/wordsgalore/languages/spanish/' +
-           'spanish1000.html' )
-    header = '#GRAMMAR 1\n#TOPLEFT Common Spanish Words'
-    tmpfile =  tempfilemodule.mkstemp()[1]
-    outfile = 'words.txt'
+    with urlopen(url) as handle:
+        html = handle.read()
+        html = html.decode('windows-1252')
 
-    handle = urlopen(url)
-    html = handle.read()
-    handle.close()
-    print(html)
-    sys.exit()
+    write_flashup(html)
+    write_wav(html)
 
-    with open(tmpfile) as lines:
-        with open(outfile, 'w') as out:
-            out.write(header.strip() + LF * 2)
-            for line in lines:
-                if line not in alldefs:
-                    word, definition = line.split('\t')
-                    out.write('* ' + word + LF)
-                    out.write(definition + LF)
-                else:
-                    print('ignoring duplicate ' + word)
-                alldefs.add(line)
-    print('successfully created ' + outfile)
-    os.remove(tmpfile)
 
 if __name__ == '__main__':
     main()
