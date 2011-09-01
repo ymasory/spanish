@@ -72,12 +72,13 @@ def main():
     mp3dir = 'mp3s'
     if not os.path.exists(mp3dir):
         os.mkdir(mp3dir)
-    for mp3url in mp3urls:
+    for i, mp3url in enumerate(mp3urls):
         fname = mp3dir + os.sep + os.path.basename(mp3url)
         with open(fname, 'wb') as out:
             with urlopen(mp3url) as handle:
                 out.write(handle.read())
-                print('downloaded ' + mp3url)
+                print('downloaded ' + str(i + 1) + '/' +
+                      str(len(mp3urls) + 1) + ': ' + mp3url)
                 time.sleep(5) #being friendly
 
 
