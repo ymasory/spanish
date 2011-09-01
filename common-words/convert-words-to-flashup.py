@@ -101,7 +101,7 @@ def main():
         desired_name_noext = outputbase + '-' + str(suffix)
         desired_name = desired_name_noext + '.mp3'
         cli = [wrap] + flags + [desired_name] + outpaths[i:i+2]
-        print(cli)
+        print(' '.join(cli))
         yutil.carefulcall(cli)
         if incr:
             os.rename(desired_name_noext + '_MP3WRAP.mp3', desired_name)
