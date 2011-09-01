@@ -85,10 +85,17 @@ def main():
                       str(len(mp3urls) + 1) + ': ' + mp3url)
                 time.sleep(5) #being friendly
 
+    silencewav = 'silence.wav'
+    silencemp3 = 'silence.mp3'
+    yutil.carefulcall(['sox', '-n', '-r', '48000', silencewav, 'trim',
+                       '0.0', '2.0'])
+    yutil.carefulcall(['lame', '--preset', 'cbr', '256', silencewav,
+                       silencemp3])
+
     wrap = 'mp3wrap'
     num = 0
     suffix = 0
-    for i in range(len(outpaths) - 1):
+    for i in range(len(outpaths)):
         if num % 100 == 0:
             incr = True
             suffix += 1
@@ -100,12 +107,15 @@ def main():
             flags = ['-a']
         desired_name_noext = outputbase + '-' + str(suffix)
         desired_name = desired_name_noext + '.mp3'
-        cli = [wrap] + flags + [desired_name] + outpaths[i:i+2]
+        cli = [wrap] + flags + [desired_name, outpaths[i], silencemp3]
         print(' '.join(cli))
         yutil.carefulcall(cli)
         if incr:
             os.rename(desired_name_noext + '_MP3WRAP.mp3', desired_name)
         num += 1
+
+    os.remove(silencewav)
+    os.remove(silencemp3)
 
 
 if __name__ == '__main__':
