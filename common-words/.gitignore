@@ -1,2 +1,3 @@
 *.flashup
-mp3s
+/mp3s
+*.mp3
