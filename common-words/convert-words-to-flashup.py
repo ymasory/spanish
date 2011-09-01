@@ -16,7 +16,9 @@ def main():
     tmpfile =  tempfilemodule.mkstemp()[1]
     outfile = 'words.txt'
 
-    html = urlopen(url).read()
+    handle = urlopen(url)
+    html = handle.read()
+    handle.close()
     print(html)
     sys.exit()
 
