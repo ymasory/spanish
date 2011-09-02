@@ -1,7 +1,15 @@
 #!/usr/bin/python3
 #
-# Usage: ./convert-words-to-flashup.py
+# Generate Flashup format flashcards and consolidated mp3 files of the 1000
+# most common spanish words as given by
+# http://wordsgalore.com/wordsgalore/languages/spanish/spanish1000.html.
+#
+# Usage: ./generate-flashcards-and-audio.py
 # Output: spanish-words.flashup, spanish-words-*.mp3
+# Requirements:
+#   - sox in PATH
+#   - mp3wrap in PATH
+#   - yutil <https://github.com/ymasory/yutil> in PYTHONPATH
 
 from html.parser import HTMLParser
 import io
